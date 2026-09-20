@@ -1,7 +1,7 @@
 import { BottomSheetFlatList, BottomSheetModal } from '@gorhom/bottom-sheet';
-import { forwardRef } from 'react';
+import { forwardRef, useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { BookmarkedDevotional, useAppStore } from '../../store/useAppStore';
+import { BookmarkedDevotional, computeBookmarkedDevotionals, useAppStore } from '../../store/useAppStore';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Period } from '../../types/devotional';
 import { PanelSheet } from './PanelSheet';
@@ -15,7 +15,8 @@ export const BookmarksPanel = forwardRef<BottomSheetModal, BookmarksPanelProps>(
   ref,
 ) {
   const { theme } = useTheme();
-  const bookmarks = useAppStore((state) => state.bookmarkedDevotionals());
+  const rawBookmarks = useAppStore((state) => state.bookmarks);
+  const bookmarks = useMemo(() => computeBookmarkedDevotionals(rawBookmarks), [rawBookmarks]);
   const toggleBookmark = useAppStore((state) => state.toggleBookmark);
 
   return (

@@ -74,6 +74,29 @@ export type BookmarkedDevotional = {
   preview: string;
 };
 
+// Pulled out so callers (e.g. useMemo) can compute this without creating a new
+// array/object reference on every store snapshot, which would upset useSyncExternalStore.
+export function computeBookmarkedDevotionals(bookmarks: string[]): BookmarkedDevotional[] {
+  return bookmarks
+    .map((bookmarkKey) => {
+      const [date, time] = bookmarkKey.split(':');
+      const entry = contentMap.get(bookmarkKey);
+      if (!entry) {
+        return null;
+      }
+
+      return {
+        key: bookmarkKey,
+        date,
+        time,
+        keyverse: entry.keyVerseNoRef || entry.keyverse || '',
+        verseRef: entry.verseRef || '',
+        preview: formatPreview(normalizeBodyText(entry.body)),
+      };
+    })
+    .filter((item): item is BookmarkedDevotional => item !== null);
+}
+
 type AppState = {
   fontSize: number;
   theme: ThemePreference;
@@ -134,26 +157,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     return contentMap.get(entryKey(date, period)) || null;
   },
   availableDates: () => uniqueDateList,
-  bookmarkedDevotionals: () => {
-    return get()
-      .bookmarks.map((bookmarkKey) => {
-        const [date, time] = bookmarkKey.split(':');
-        const entry = contentMap.get(bookmarkKey);
-        if (!entry) {
-          return null;
-        }
-
-        return {
-          key: bookmarkKey,
-          date,
-          time,
-          keyverse: entry.keyVerseNoRef || entry.keyverse || '',
-          verseRef: entry.verseRef || '',
-          preview: formatPreview(normalizeBodyText(entry.body)),
-        };
-      })
-      .filter((item): item is BookmarkedDevotional => item !== null);
-  },
+  bookmarkedDevotionals: () => computeBookmarkedDevotionals(get().bookmarks),
   isBookmarked: (date, time) => get().bookmarks.includes(entryKey(date, time)),
 
   setFontSize: (fontSize) => set({ fontSize }),

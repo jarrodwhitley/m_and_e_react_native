@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/useAppStore';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -18,11 +19,17 @@ function formatDisplayDate(date: string): string {
 
 export function Header() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const effectiveDate = useAppStore((state) => state.effectiveDate());
   const effectivePeriod = useAppStore((state) => state.effectivePeriod());
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.headerGradientStart, borderBottomColor: theme.border }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.headerGradientStart, borderBottomColor: theme.border, paddingTop: insets.top + 12 },
+      ]}
+    >
       <Text style={[styles.title, { color: theme.textPrimary }]}>Morning &amp; Evening</Text>
       <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
         {formatDisplayDate(effectiveDate)} · {effectivePeriod === 'am' ? 'Morning' : 'Evening'}
