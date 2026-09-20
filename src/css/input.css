@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+p {
+    @apply mt-2 indent-4;
+}
+
+.button.disabled img {
+    @apply cursor-not-allowed opacity-20;
+}
+
+/* Menu Buttons */
+.menu-button {
+    @apply bg-transparent p-2 w-full h-full flex items-center py-4;
+}
+
+.menu-button:not(.m-0) {
+    @apply border-t-gray-100 border-t-2 ;
+}
+
+.menu-button:active, .menu-button:focus {
+    @apply bg-gray-200 rounded;
+}

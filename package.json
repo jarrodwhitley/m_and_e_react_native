@@ -1,0 +1,34 @@
+{
+    "name": "vite-vue-starter",
+    "private": true,
+    "homepage": "https://jarrodwhitley.github.io/m_and_e",
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "free:5173": "sh -c 'pids=$(lsof -ti tcp:5173); if [ -n \"$pids\" ]; then kill -9 $pids; fi'",
+        "dev": "npm run free:5173 && vite --host --port 5173 --strictPort",
+        "build": "vite build",
+        "postbuild": "node scripts/hash-public-assets.mjs",
+        "pwa": "vite build --mode pwa && npm run postbuild",
+        "preview": "vite preview",
+        "tailwind": "npx tailwindcss -i ./src/css/input.css -o ./style.css",
+        "watch:css": "npx tailwindcss -i ./src/css/input.css -o ./style.css --watch",
+        "watch:vite": "npm run free:5173 && vite --host --port 5173 --strictPort",
+        "watch": "concurrently -k -n TW,VITE -c green,cyan \"npm:watch:css\" \"npm:watch:vite\"",
+        "tunnel": "wait-on tcp:5173 && ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -R 80:localhost:5173 nokey@localhost.run",
+        "watch:tunnel": "npm run free:5173 && concurrently -k -n APP,TUNNEL -c green,cyan \"npm:watch\" \"npm:tunnel\""
+    },
+    "dependencies": {
+        "pinia": "^2.1.7",
+        "vue": "^3.4.31"
+    },
+    "devDependencies": {
+        "@vitejs/plugin-vue": "^5.0.5",
+        "concurrently": "^9.2.1",
+        "gh-pages": "^6.1.1",
+        "sass": "^1.77.8",
+        "tailwindcss": "^3.4.4",
+        "vite": "^5.3.2",
+        "wait-on": "^8.0.3"
+    }
+}

@@ -1,0 +1,23 @@
+{
+    "name": "Morning & Evening",
+    "short_name": "M & E",
+    "description": "Charles Spurgeon's Morning and Evening devotionals.",
+    "start_url": "/m_and_e/",
+    "scope": "/m_and_e/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "theme_color": "#72baac",
+    "background_color": "#72baac",
+    "icons": [
+        {
+            "src": "/m_and_e/android-chrome-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/m_and_e/android-chrome-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
