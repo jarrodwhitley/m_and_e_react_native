@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppStore } from '../store/useAppStore';
+import { AppTheme } from '../theme/theme';
 import { useTheme } from '../theme/ThemeProvider';
+import { MaterialIcon } from './icons/MaterialIcon';
 
 type FooterControlBarProps = {
   onOpenSearch: () => void;
@@ -18,56 +20,49 @@ export function FooterControlBar({
 }: FooterControlBarProps) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const effectiveDate = useAppStore((state) => state.effectiveDate());
   const effectivePeriod = useAppStore((state) => state.effectivePeriod());
   const togglePeriod = useAppStore((state) => state.togglePeriod);
-  const toggleBookmark = useAppStore((state) => state.toggleBookmark);
-  const isBookmarked = useAppStore((state) => state.isBookmarked(effectiveDate, effectivePeriod));
 
   return (
     <View
       style={[
         styles.container,
         {
-          backgroundColor: theme.surface,
+          backgroundColor: theme.surfaceSecondary,
           borderTopColor: theme.border,
-          paddingBottom: insets.bottom + 10,
+          paddingBottom: insets.bottom + 6,
         },
       ]}
     >
-      <FooterButton label="Search" theme={theme} onPress={onOpenSearch} />
-      <FooterButton label="Date" theme={theme} onPress={onOpenDatePicker} />
+      <FooterButton icon="search" label="Search" theme={theme} onPress={onOpenSearch} />
+      <FooterButton icon="calendar-month" label="Date" theme={theme} onPress={onOpenDatePicker} />
       <FooterButton
-        label={effectivePeriod === 'am' ? 'AM' : 'PM'}
+        icon={effectivePeriod === 'am' ? 'light-mode' : 'dark-mode'}
+        label={effectivePeriod === 'am' ? 'Morning' : 'Evening'}
         theme={theme}
         onPress={togglePeriod}
       />
-      <FooterButton
-        label={isBookmarked ? 'Saved' : 'Save'}
-        theme={theme}
-        onPress={() => toggleBookmark(effectiveDate, effectivePeriod)}
-      />
-      <FooterButton label="Bookmarks" theme={theme} onPress={onOpenBookmarks} />
-      <FooterButton label="Menu" theme={theme} onPress={onOpenSettings} />
+      <FooterButton icon="settings" label="Settings" theme={theme} onPress={onOpenSettings} />
+      <FooterButton icon="bookmark" label="Saved" theme={theme} onPress={onOpenBookmarks} />
     </View>
   );
 }
 
 function FooterButton({
+  icon,
   label,
   theme,
   onPress,
 }: {
+  icon: Parameters<typeof MaterialIcon>[0]['name'];
   label: string;
-  theme: { buttonSecondaryBackground: string; buttonSecondaryText: string };
+  theme: AppTheme;
   onPress: () => void;
 }) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.button, { backgroundColor: theme.buttonSecondaryBackground }]}
-    >
-      <Text style={[styles.buttonText, { color: theme.buttonSecondaryText }]}>{label}</Text>
+    <Pressable onPress={onPress} style={styles.button}>
+      <MaterialIcon name={icon} size={24} color={theme.textSecondary} />
+      <Text style={[styles.buttonText, { color: theme.textSecondary }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -76,19 +71,18 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingTop: 10,
+    paddingTop: 8,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   button: {
     flex: 1,
-    marginHorizontal: 4,
-    paddingVertical: 10,
-    borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    gap: 2,
   },
   buttonText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
 });
