@@ -25,7 +25,7 @@ export const SearchPanel = forwardRef<BottomSheetModal, SearchPanelProps>(functi
   const runSearch = useAppStore((state) => state.runSearch);
 
   return (
-    <PanelSheet ref={ref} title="Search">
+    <PanelSheet ref={ref} title="Search" hasTextInput>
       <View style={styles.searchInputWrapper}>
         <BottomSheetTextInput
           value={searchQuery}
