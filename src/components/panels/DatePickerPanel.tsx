@@ -1,10 +1,10 @@
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { Picker } from '@react-native-picker/picker';
 import { forwardRef, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppStore } from '../../store/useAppStore';
 import { useTheme } from '../../theme/ThemeProvider';
 import { Period } from '../../types/devotional';
+import { WheelPicker } from '../WheelPicker';
 import { PanelSheet } from './PanelSheet';
 
 type DatePickerPanelProps = {
@@ -105,31 +105,24 @@ export const DatePickerPanel = forwardRef<BottomSheetModal, DatePickerPanelProps
     <PanelSheet ref={ref} title="Date" snapPoints={['48%']} enableContentPanningGesture={false}>
       <View style={styles.content}>
         <View style={styles.pickerRow}>
-          <Picker
-            selectedValue={selectedMonth ?? undefined}
-            onValueChange={(value) => setSelectedMonth(String(value))}
-            style={styles.monthPicker}
-            itemStyle={{ color: theme.textPrimary }}
-          >
-            {monthOptions.map((month) => (
-              <Picker.Item
-                key={month}
-                label={MONTH_NAMES[month - 1]}
-                value={String(month)}
-                color={theme.textPrimary}
-              />
-            ))}
-          </Picker>
-          <Picker
-            selectedValue={selectedDay ?? undefined}
-            onValueChange={(value) => setSelectedDay(String(value))}
-            style={styles.dayPicker}
-            itemStyle={{ color: theme.textPrimary }}
-          >
-            {dayOptions.map((day) => (
-              <Picker.Item key={day} label={String(day)} value={String(day)} color={theme.textPrimary} />
-            ))}
-          </Picker>
+          <View style={styles.monthPicker}>
+            <WheelPicker
+              options={monthOptions.map((month) => ({ value: String(month), label: MONTH_NAMES[month - 1] }))}
+              selectedValue={selectedMonth}
+              onChange={setSelectedMonth}
+              textColor={theme.textPrimary}
+              highlightColor={theme.border}
+            />
+          </View>
+          <View style={styles.dayPicker}>
+            <WheelPicker
+              options={dayOptions.map((day) => ({ value: String(day), label: String(day) }))}
+              selectedValue={selectedDay}
+              onChange={setSelectedDay}
+              textColor={theme.textPrimary}
+              highlightColor={theme.border}
+            />
+          </View>
         </View>
 
         <View style={[styles.periodRow, { backgroundColor: theme.segmentedBackground }]}>
