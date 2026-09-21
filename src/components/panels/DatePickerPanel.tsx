@@ -51,8 +51,8 @@ export const DatePickerPanel = forwardRef<BottomSheetModal, DatePickerPanelProps
   const monthToDaysMap = useMemo(() => buildMonthToDaysMap(availableDates), [availableDates]);
   const monthOptions = useMemo(() => [...monthToDaysMap.keys()].sort((a, b) => a - b), [monthToDaysMap]);
 
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('am');
 
   useEffect(() => {
@@ -61,13 +61,13 @@ export const DatePickerPanel = forwardRef<BottomSheetModal, DatePickerPanelProps
     const day = Number(rawDay);
 
     if (month && day && monthToDaysMap.get(month)?.includes(day)) {
-      setSelectedMonth(month);
-      setSelectedDay(day);
+      setSelectedMonth(String(month));
+      setSelectedDay(String(day));
     } else {
       const firstMonth = monthOptions[0] ?? null;
       const firstDay = firstMonth ? (monthToDaysMap.get(firstMonth)?.[0] ?? null) : null;
-      setSelectedMonth(firstMonth);
-      setSelectedDay(firstDay);
+      setSelectedMonth(firstMonth ? String(firstMonth) : null);
+      setSelectedDay(firstDay ? String(firstDay) : null);
     }
 
     setSelectedPeriod(currentPeriod);
@@ -79,7 +79,7 @@ export const DatePickerPanel = forwardRef<BottomSheetModal, DatePickerPanelProps
     if (!selectedMonth) {
       return [];
     }
-    return monthToDaysMap.get(selectedMonth) ?? [];
+    return monthToDaysMap.get(Number(selectedMonth)) ?? [];
   }, [monthToDaysMap, selectedMonth]);
 
   useEffect(() => {
@@ -87,8 +87,8 @@ export const DatePickerPanel = forwardRef<BottomSheetModal, DatePickerPanelProps
       setSelectedDay(null);
       return;
     }
-    if (!selectedDay || !dayOptions.includes(selectedDay)) {
-      setSelectedDay(dayOptions[0]);
+    if (!selectedDay || !dayOptions.includes(Number(selectedDay))) {
+      setSelectedDay(String(dayOptions[0]));
     }
     // Only re-run when the available day list changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -98,7 +98,7 @@ export const DatePickerPanel = forwardRef<BottomSheetModal, DatePickerPanelProps
     if (!selectedMonth || !selectedDay) {
       return;
     }
-    onSelectDate(`${selectedMonth}-${selectedDay}`, selectedPeriod);
+    onSelectDate(`${Number(selectedMonth)}-${Number(selectedDay)}`, selectedPeriod);
   }
 
   return (
@@ -107,22 +107,27 @@ export const DatePickerPanel = forwardRef<BottomSheetModal, DatePickerPanelProps
         <View style={styles.pickerRow}>
           <Picker
             selectedValue={selectedMonth ?? undefined}
-            onValueChange={(value) => setSelectedMonth(Number(value))}
+            onValueChange={(value) => setSelectedMonth(String(value))}
             style={styles.monthPicker}
             itemStyle={{ color: theme.textPrimary }}
           >
             {monthOptions.map((month) => (
-              <Picker.Item key={month} label={MONTH_NAMES[month - 1]} value={month} color={theme.textPrimary} />
+              <Picker.Item
+                key={month}
+                label={MONTH_NAMES[month - 1]}
+                value={String(month)}
+                color={theme.textPrimary}
+              />
             ))}
           </Picker>
           <Picker
             selectedValue={selectedDay ?? undefined}
-            onValueChange={(value) => setSelectedDay(Number(value))}
+            onValueChange={(value) => setSelectedDay(String(value))}
             style={styles.dayPicker}
             itemStyle={{ color: theme.textPrimary }}
           >
             {dayOptions.map((day) => (
-              <Picker.Item key={day} label={String(day)} value={day} color={theme.textPrimary} />
+              <Picker.Item key={day} label={String(day)} value={String(day)} color={theme.textPrimary} />
             ))}
           </Picker>
         </View>
