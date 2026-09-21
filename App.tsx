@@ -53,6 +53,12 @@ function AppContent() {
     [openDevotional],
   );
 
+  const goToToday = useAppStore((state) => state.goToToday);
+  const handleGoToday = useCallback(() => {
+    goToToday();
+    dateSheetRef.current?.dismiss();
+  }, [goToToday]);
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar style={themeName === 'morning' ? 'dark' : 'light'} />
@@ -67,7 +73,7 @@ function AppContent() {
       {isLoading && <LoadingOverlay />}
 
       <SearchPanel ref={searchSheetRef} onSelectResult={handleSelectDevotional} />
-      <DatePickerPanel ref={dateSheetRef} onSelectDate={handleSelectDevotional} />
+      <DatePickerPanel ref={dateSheetRef} onSelectDate={handleSelectDevotional} onGoToday={handleGoToday} />
       <BookmarksPanel ref={bookmarksSheetRef} onSelectBookmark={handleSelectDevotional} />
       <SettingsPanel ref={settingsSheetRef} />
     </View>

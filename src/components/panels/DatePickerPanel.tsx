@@ -1,5 +1,6 @@
-import { BottomSheetFlatList, BottomSheetModal } from '@gorhom/bottom-sheet';
-import { forwardRef } from 'react';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { Picker } from '@react-native-picker/picker';
+import { forwardRef, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAppStore } from '../../store/useAppStore';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -8,6 +9,7 @@ import { PanelSheet } from './PanelSheet';
 
 type DatePickerPanelProps = {
   onSelectDate: (date: string, time: Period) => void;
+  onGoToday: () => void;
 };
 
 const MONTH_NAMES = [
@@ -15,92 +17,217 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-function formatDisplayDate(date: string): string {
-  const [month, day] = date.split('-').map(Number);
-  if (!month || !day) {
-    return date;
+function buildMonthToDaysMap(availableDates: string[]): Map<number, number[]> {
+  const map = new Map<number, number[]>();
+
+  for (const rawDate of availableDates) {
+    const [rawMonth, rawDay] = rawDate.split('-');
+    const month = Number(rawMonth);
+    const day = Number(rawDay);
+    if (!month || !day) {
+      continue;
+    }
+
+    const days = map.get(month) ?? [];
+    if (!days.includes(day)) {
+      days.push(day);
+      days.sort((a, b) => a - b);
+    }
+    map.set(month, days);
   }
-  return `${MONTH_NAMES[month - 1]} ${day}`;
+
+  return map;
 }
 
 export const DatePickerPanel = forwardRef<BottomSheetModal, DatePickerPanelProps>(function DatePickerPanel(
-  { onSelectDate },
+  { onSelectDate, onGoToday },
   ref,
 ) {
   const { theme } = useTheme();
   const availableDates = useAppStore((state) => state.availableDates());
-  const effectiveDate = useAppStore((state) => state.effectiveDate());
+  const currentDate = useAppStore((state) => state.effectiveDate());
+  const currentPeriod = useAppStore((state) => state.effectivePeriod());
+
+  const monthToDaysMap = useMemo(() => buildMonthToDaysMap(availableDates), [availableDates]);
+  const monthOptions = useMemo(() => [...monthToDaysMap.keys()].sort((a, b) => a - b), [monthToDaysMap]);
+
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<Period>('am');
+
+  useEffect(() => {
+    const [rawMonth, rawDay] = currentDate.split('-');
+    const month = Number(rawMonth);
+    const day = Number(rawDay);
+
+    if (month && day && monthToDaysMap.get(month)?.includes(day)) {
+      setSelectedMonth(month);
+      setSelectedDay(day);
+    } else {
+      const firstMonth = monthOptions[0] ?? null;
+      const firstDay = firstMonth ? (monthToDaysMap.get(firstMonth)?.[0] ?? null) : null;
+      setSelectedMonth(firstMonth);
+      setSelectedDay(firstDay);
+    }
+
+    setSelectedPeriod(currentPeriod);
+    // Only re-initialize when the panel's underlying data changes, not on every keystroke.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [monthToDaysMap]);
+
+  const dayOptions = useMemo(() => {
+    if (!selectedMonth) {
+      return [];
+    }
+    return monthToDaysMap.get(selectedMonth) ?? [];
+  }, [monthToDaysMap, selectedMonth]);
+
+  useEffect(() => {
+    if (!dayOptions.length) {
+      setSelectedDay(null);
+      return;
+    }
+    if (!selectedDay || !dayOptions.includes(selectedDay)) {
+      setSelectedDay(dayOptions[0]);
+    }
+    // Only re-run when the available day list changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dayOptions]);
+
+  function handleJumpToDate() {
+    if (!selectedMonth || !selectedDay) {
+      return;
+    }
+    onSelectDate(`${selectedMonth}-${selectedDay}`, selectedPeriod);
+  }
 
   return (
-    <PanelSheet ref={ref} title="Jump to Date">
-      <BottomSheetFlatList
-        data={availableDates}
-        keyExtractor={(date) => date}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item: date }) => {
-          const isSelected = date === effectiveDate;
-          return (
-            <View style={[styles.row, { borderColor: theme.border }]}>
-              <Text
-                style={[
-                  styles.dateLabel,
-                  { color: isSelected ? theme.selectedText : theme.textPrimary },
-                  isSelected && { backgroundColor: theme.selectedBackground },
-                ]}
-              >
-                {formatDisplayDate(date)}
-              </Text>
-              <View style={styles.periodButtons}>
-                <Pressable
-                  style={[styles.periodButton, { backgroundColor: theme.buttonSecondaryBackground }]}
-                  onPress={() => onSelectDate(date, 'am')}
-                >
-                  <Text style={[styles.periodButtonText, { color: theme.buttonSecondaryText }]}>AM</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.periodButton, { backgroundColor: theme.buttonSecondaryBackground }]}
-                  onPress={() => onSelectDate(date, 'pm')}
-                >
-                  <Text style={[styles.periodButtonText, { color: theme.buttonSecondaryText }]}>PM</Text>
-                </Pressable>
-              </View>
-            </View>
-          );
-        }}
-      />
+    <PanelSheet ref={ref} title="Date" snapPoints={['48%']}>
+      <View style={styles.content}>
+        <View style={styles.pickerRow}>
+          <Picker
+            selectedValue={selectedMonth ?? undefined}
+            onValueChange={(value) => setSelectedMonth(Number(value))}
+            style={styles.monthPicker}
+            itemStyle={{ color: theme.textPrimary }}
+          >
+            {monthOptions.map((month) => (
+              <Picker.Item key={month} label={MONTH_NAMES[month - 1]} value={month} color={theme.textPrimary} />
+            ))}
+          </Picker>
+          <Picker
+            selectedValue={selectedDay ?? undefined}
+            onValueChange={(value) => setSelectedDay(Number(value))}
+            style={styles.dayPicker}
+            itemStyle={{ color: theme.textPrimary }}
+          >
+            {dayOptions.map((day) => (
+              <Picker.Item key={day} label={String(day)} value={day} color={theme.textPrimary} />
+            ))}
+          </Picker>
+        </View>
+
+        <View style={[styles.periodRow, { backgroundColor: theme.segmentedBackground }]}>
+          <Pressable
+            style={[
+              styles.periodButton,
+              selectedPeriod === 'am' && { backgroundColor: theme.buttonPrimary },
+            ]}
+            onPress={() => setSelectedPeriod('am')}
+          >
+            <Text
+              style={[
+                styles.periodButtonText,
+                { color: selectedPeriod === 'am' ? theme.buttonPrimaryText : theme.segmentedText },
+              ]}
+            >
+              Morning
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.periodButton,
+              selectedPeriod === 'pm' && { backgroundColor: theme.buttonPrimary },
+            ]}
+            onPress={() => setSelectedPeriod('pm')}
+          >
+            <Text
+              style={[
+                styles.periodButtonText,
+                { color: selectedPeriod === 'pm' ? theme.buttonPrimaryText : theme.segmentedText },
+              ]}
+            >
+              Evening
+            </Text>
+          </Pressable>
+        </View>
+
+        <Pressable
+          style={[styles.primaryButton, { backgroundColor: theme.buttonPrimary }]}
+          onPress={handleJumpToDate}
+        >
+          <Text style={[styles.primaryButtonText, { color: theme.buttonPrimaryText }]}>Jump To Date</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.secondaryButton, { backgroundColor: theme.buttonSecondaryBackground }]}
+          onPress={onGoToday}
+        >
+          <Text style={[styles.secondaryButtonText, { color: theme.buttonSecondaryText }]}>Go To Today</Text>
+        </Pressable>
+      </View>
     </PanelSheet>
   );
 });
 
 const styles = StyleSheet.create({
-  listContent: {
+  content: {
     paddingHorizontal: 20,
     paddingBottom: 24,
   },
-  row: {
+  pickerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  dateLabel: {
-    fontSize: 15,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
+  monthPicker: {
+    flex: 1.2,
   },
-  periodButtons: {
+  dayPicker: {
+    flex: 0.8,
+  },
+  periodRow: {
     flexDirection: 'row',
+    borderRadius: 12,
+    padding: 4,
+    marginTop: 4,
   },
   periodButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginLeft: 8,
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
   },
   periodButtonText: {
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  primaryButton: {
+    marginTop: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    marginTop: 10,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    fontSize: 15,
     fontWeight: '600',
   },
 });
