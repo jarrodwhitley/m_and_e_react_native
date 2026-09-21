@@ -102,7 +102,7 @@ export const DatePickerPanel = forwardRef<BottomSheetModal, DatePickerPanelProps
   }
 
   return (
-    <PanelSheet ref={ref} title="Date" snapPoints={['48%']}>
+    <PanelSheet ref={ref} title="Date" snapPoints={['48%']} enableContentPanningGesture={false}>
       <View style={styles.content}>
         <View style={styles.pickerRow}>
           <Picker

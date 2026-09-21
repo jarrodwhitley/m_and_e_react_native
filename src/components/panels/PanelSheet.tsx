@@ -9,10 +9,11 @@ type PanelSheetProps = {
   children: React.ReactNode;
   snapPoints?: (string | number)[];
   hasTextInput?: boolean;
+  enableContentPanningGesture?: boolean;
 };
 
 export const PanelSheet = forwardRef<BottomSheetModal, PanelSheetProps>(function PanelSheet(
-  { title, children, snapPoints = ['60%', '90%'], hasTextInput = false },
+  { title, children, snapPoints = ['60%', '90%'], hasTextInput = false, enableContentPanningGesture = true },
   ref,
 ) {
   const { theme } = useTheme();
@@ -38,6 +39,7 @@ export const PanelSheet = forwardRef<BottomSheetModal, PanelSheetProps>(function
       snapPoints={snapPoints}
       enableDynamicSizing={false}
       enablePanDownToClose
+      enableContentPanningGesture={enableContentPanningGesture}
       keyboardBehavior={hasTextInput ? 'extend' : 'interactive'}
       keyboardBlurBehavior="restore"
       backdropComponent={renderBackdrop}
