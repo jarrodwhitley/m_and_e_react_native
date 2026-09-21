@@ -74,6 +74,16 @@ export type BookmarkedDevotional = {
   preview: string;
 };
 
+export type SearchResult = {
+  key: string;
+  date: string;
+  time: string;
+  keyverse: string;
+  verseRef: string;
+  tags: string[];
+  preview: string;
+};
+
 // Pulled out so callers (e.g. useMemo) can compute this without creating a new
 // array/object reference on every store snapshot, which would upset useSyncExternalStore.
 export function computeBookmarkedDevotionals(bookmarks: string[]): BookmarkedDevotional[] {
@@ -106,7 +116,7 @@ type AppState = {
   selectedPeriod: Period | null;
   bookmarks: string[];
   searchQuery: string;
-  searchResults: DevotionalEntry[];
+  searchResults: SearchResult[];
 
   // getters (Pinia -> plain functions reading current state)
   effectiveDate: () => string;
@@ -235,11 +245,20 @@ export const useAppStore = create<AppState>((set, get) => ({
       return;
     }
 
-    const results = (content as DevotionalEntry[])
+    const results: SearchResult[] = (content as DevotionalEntry[])
       .map((entry) => ({ entry, rank: rankSearchResult(entry, needle) }))
       .filter(({ rank }) => Number.isFinite(rank))
       .sort((a, b) => a.rank - b.rank)
-      .map(({ entry }) => entry);
+      .slice(0, 40)
+      .map(({ entry }) => ({
+        key: entryKey(entry.date, entry.time),
+        date: entry.date,
+        time: entry.time,
+        keyverse: entry.keyVerseNoRef || entry.keyverse || '',
+        verseRef: entry.verseRef || '',
+        tags: Array.isArray(entry.topics) ? entry.topics : [],
+        preview: formatPreview(normalizeBodyText(entry.body)),
+      }));
 
     set({ searchQuery: query, searchResults: results });
   },

@@ -5,7 +5,7 @@ import { useAppStore } from '../store/useAppStore';
 import { useTheme } from '../theme/ThemeProvider';
 import { MaterialIcon } from './icons/MaterialIcon';
 
-function formatDisplayDate(date: string): string {
+function formatHeaderTitle(date: string, period: string): string {
   const [month, day] = date.split('-').map(Number);
   if (!month || !day) {
     return '';
@@ -16,7 +16,8 @@ function formatDisplayDate(date: string): string {
     'July', 'August', 'September', 'October', 'November', 'December',
   ];
 
-  return `${monthNames[month - 1]} ${day}`;
+  const readingTime = period === 'am' ? 'Morning' : 'Evening';
+  return `${monthNames[month - 1]} ${day} - ${readingTime}`;
 }
 
 export function Header() {
@@ -37,9 +38,8 @@ export function Header() {
       <Image source={spurgeonIcon} style={styles.logo} resizeMode="contain" />
 
       <View style={styles.titleWrapper}>
-        <Text style={[styles.title, { color: theme.textPrimary }]}>Morning &amp; Evening</Text>
-        <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-          {formatDisplayDate(effectiveDate)} · {effectivePeriod === 'am' ? 'Morning' : 'Evening'}
+        <Text style={[styles.title, { color: theme.textSecondary }]}>
+          {formatHeaderTitle(effectiveDate, effectivePeriod)}
         </Text>
       </View>
 
@@ -81,11 +81,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  subtitle: {
-    fontSize: 14,
-    marginTop: 2,
+    fontSize: 18,
+    letterSpacing: 0.3,
   },
 });
