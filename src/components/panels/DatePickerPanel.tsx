@@ -102,7 +102,7 @@ export const DatePickerPanel = forwardRef<BottomSheetModal, DatePickerPanelProps
   }
 
   return (
-    <PanelSheet ref={ref} title="Date" snapPoints={['48%']} enableContentPanningGesture={false}>
+    <PanelSheet ref={ref} title="Date" snapPoints={['62%']} enableContentPanningGesture={false}>
       <View style={styles.content}>
         <View style={styles.pickerRow}>
           <View style={styles.monthPicker}>
@@ -185,6 +185,8 @@ const styles = StyleSheet.create({
   },
   pickerRow: {
     flexDirection: 'row',
+    height: 200,
+    marginBottom: 12,
   },
   monthPicker: {
     flex: 1.2,
